@@ -1,5 +1,6 @@
 const express = require('express')
 const Users = require('../models/users')
+const auth = require('../middlewares/auth')
 
 const router = express.Router()
 
@@ -7,7 +8,8 @@ router.post('/addUsers', async (req,res) => {
     const user = new Users(req.body)
     try{
         await user.save()
-        res.status(201).send(user)
+        const token = await user.getToken()
+        res.status(201).send({user,token})
     }catch(e){
         res.status(400).send(e)
     }
@@ -20,6 +22,10 @@ router.post('/loginUser', async (req,res) => {
     }catch(e){
         res.status(404).send(e)
     }
+})
+
+router.get('/profile',auth ,async (req,res) => {
+   res.send(req.user)
 })
 
 router.get('/getUser/:id', async (req,res) => {

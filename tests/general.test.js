@@ -8,7 +8,6 @@ test('Should sign in user', async (done) => {
         .post('/addUsers')
         .send({
             "name":"salih",
-            "email":"salih@123",
             "phone":"1234567",
             "password":"1234",
             "address":{
