@@ -1,6 +1,7 @@
 const express = require('express')
 const Users = require('../models/users')
 const auth = require('../middlewares/auth')
+const { userUpdateCheck } = require('./functions/userFunctions')
 
 const router = express.Router()
 
@@ -18,7 +19,8 @@ router.post('/addUsers', async (req,res) => {
 router.post('/loginUser', async (req,res) => {
     try{
         const user = await Users.findByCredintials(req.body.username,req.body.password)
-        res.send(user)
+        const token = await user.getToken()
+        res.send({user,token})
     }catch(e){
         res.status(404).send(e)
     }
@@ -26,6 +28,36 @@ router.post('/loginUser', async (req,res) => {
 
 router.get('/profile',auth ,async (req,res) => {
    res.send(req.user)
+})
+
+router.patch('/updateUser',auth, async (req,res) => {
+    const updatedData = userUpdateCheck(req.body)
+    if(!updatedData){
+       return res.status(400).send('Oops!! invalid update')
+    } 
+    try{
+        updatedData.forEach((update) => {
+            req.user[update] = req.body[update]
+        })
+        await req.user.save()
+        res.send(req.user)
+    }catch(e){
+        res.status(400).send(e)
+    }
+    
+
+})
+
+router.post('/logoutUser', auth ,async (req,res) => {
+        try{
+            req.user.tokens = req.user.tokens.filter((token)=>{
+                return token.token !== req.token
+            })
+            await req.user.save()
+            res.send(req.user)
+        }catch(e){
+            res.status(400).send(e)
+        }
 })
 
 router.get('/getUser/:id', async (req,res) => {
