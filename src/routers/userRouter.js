@@ -60,6 +60,16 @@ router.post('/logoutUser', auth ,async (req,res) => {
         }
 })
 
+router.post('/logoutAll',auth,async (req,res) =>  {
+    try{
+        req.user.tokens = []
+        await req.user.save()
+        res.send(req.user)
+    }catch(e){
+        res.status(400).send(e)
+    }
+})
+
 router.get('/getUser/:id', async (req,res) => {
     try{
         const user = await Users.findById({_id:req.params.id})
@@ -68,6 +78,21 @@ router.get('/getUser/:id', async (req,res) => {
                 error:"Opss!! no user found"
             })
         }
+        res.send(user)
+    }catch(e){
+        res.status(500).send(e)
+    }
+})
+
+router.delete('/deleteUser',auth,async (req,res) => {
+    try{
+        const user = await Users.findById({_id:req.user._id})
+        if(!user){
+           return res.status(404).send({
+               error:'No user to delete'
+           })
+        }
+        await user.remove()
         res.send(user)
     }catch(e){
         res.status(500).send(e)

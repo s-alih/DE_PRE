@@ -6,6 +6,7 @@ const { productUpdateCheck } = require('./functions/productFunctions')
 const router = express.Router()
 
 router.post('/AddProduct', async (req,res) => {
+    const product = new Products(req.body)
     try{
         await product.save()
         res.send(product)
@@ -14,7 +15,7 @@ router.post('/AddProduct', async (req,res) => {
     }
 })
 
-router.patch('/EditProduct/:id', async (req,res) => {
+router.patch('/editProduct/:id', async (req,res) => {
     const productKey = productUpdateCheck(req.body)
     if(!productKey){
         return res.status(400).send('Opss! bad request')
@@ -40,6 +41,19 @@ router.get('/getProduct/:id', async (req,res) => {
         res.send(product)
     }catch(e){
         res.status(404).send(e)
+    }
+})
+
+router.delete('/deleteProduct/:id', async (req,res) => {
+    try{
+        const product = await Products.findById({_id:req.params.id})
+        if(!product){
+            return res.status(404).send('Opps!! no product to delete')
+        }
+        const data = await product.remove()
+        res.send(data)
+    }catch(e){
+        res.status(500).send(e)
     }
 })
 
