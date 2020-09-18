@@ -3,7 +3,7 @@ const Users = require('../models/users')
 const auth = require('../middlewares/auth')
 const { userUpdateCheck } = require('./functions/userFunctions')
 
-const router = express.Router()
+const router = express.Router() 
 
 router.post('/addUsers', async (req,res) => {
     const user = new Users(req.body)
@@ -12,7 +12,9 @@ router.post('/addUsers', async (req,res) => {
         const token = await user.getToken()
         res.status(201).send({user,token})
     }catch(e){
-        res.status(400).send(e)
+        res.status(400).send({
+            error:"Something went wrong",
+        })
     }
 })
 
@@ -22,7 +24,9 @@ router.post('/loginUser', async (req,res) => {
         const token = await user.getToken()
         res.send({user,token})
     }catch(e){
-        res.status(404).send(e)
+        res.status(404).send({
+            error:"user not found"
+        })
     }
 })
 

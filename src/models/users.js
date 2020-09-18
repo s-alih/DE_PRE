@@ -41,6 +41,11 @@ const userShema = mongoose.Schema({
         }
     }]
 })
+userShema.virtual('product',{
+    ref:'product',
+    localField:'_id',
+    foreignField:'owner'
+})
 
 userShema.methods.getToken = async function(){
 

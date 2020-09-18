@@ -1,13 +1,28 @@
 const express = require('express')
 const app = require('../app')
+const multer = require('multer')
+const sharp = require('sharp')
+
+const auth = require('../middlewares/auth')
 const Products = require('../models/product')
-const { productUpdateCheck } = require('./functions/productFunctions')
+const { productUpdateCheck ,asyncForeEach} = require('./functions/productFunctions')
+
 
 const router = express.Router()
 
-router.post('/AddProduct', async (req,res) => {
-    const product = new Products(req.body)
+const picture = multer({
+    fileFilter(req,file,cb){
+        if(!file.originalname.match(/\.(jpg|jpeg|png)/)){
+            cb( new Error('please upload a valid  image'),)
+        }
+        cb(undefined,true)
+    }
+})
+
+router.post('/AddProduct', auth,picture.single('picture'),async (req,res) => {
     try{
+        const buffer = await sharp(req.file.buffer).resize({width:250,height:250}).png().toBuffer()
+        const product = new Products({...req.body,owner:req.user._id,picture:buffer})
         await product.save()
         res.send(product)
     }catch(e){
@@ -41,6 +56,36 @@ router.get('/getProduct/:id', async (req,res) => {
         res.send(product)
     }catch(e){
         res.status(404).send(e)
+    }
+})
+router.get('/getAllProduct',async (req,res) =>  {
+    
+    try{
+        //initilised empty array
+        var array =[];
+        const length = await Products.length
+        const products = await Products.find()
+        await asyncForeEach(products, async (product,index,products)=>{          
+                   const data = await product
+                    .populate('owner')
+                    .execPopulate()
+            array.push({
+                productName:product.name,
+                price:product.price,
+                quantity:product.quantity,
+                ownerName:data.owner.name,
+                ownerPhoneNo:data.owner.phone,
+                ownerUsername:data.owner.username,
+            })
+            // console.log(array)   
+        })
+       
+        console.log('hello world before response')
+        //want array outside the forEach function
+        console.log(array)
+        res.send(array);
+    }catch(e){
+        res.status(400).send(e);
     }
 })
 

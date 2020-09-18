@@ -13,6 +13,15 @@ const productSchema = mongoose.Schema({
         type:Number,
         required:true
     },
+    owner:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'Users',
+        required:true,
+        
+    },
+    picture:{
+        type:Buffer,
+    }
 })
 
 const Product = mongoose.model('product',productSchema) 
